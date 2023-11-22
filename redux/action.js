@@ -34,55 +34,130 @@ export const loadUser = () => async (dispatch) => {
   }
 };
 
-export const addTask = (title, description) => async (dispatch) => {
+//Add action for addtask where data is title, price, category, description, images
+export const addListing = (formData) => async (dispatch) => {
   try {
     dispatch({ type: "addTaskRequest" });
 
-    const { data } = await axios.post(
-      `${serverUrl}/newtask`,
-      {
-        title,
-        description,
+    const { data } = await axios.post(`${serverUrl}/addlisting`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
       },
+    });
+    dispatch({ type: "addTaskSuccess", payload: data.message });
+  } catch (error) {
+    dispatch({
+      type: "addTaskFailure",
+      payload: error.response.data.message,
+    });
+  }
+};
+
+//Add action for getlisting
+export const getAllListing = () => async (dispatch) => {
+  try {
+    dispatch({ type: "getListingRequest" });
+
+    const { data } = await axios.get(`${serverUrl}/getlistings`);
+    dispatch({ type: "getListingSuccess", payload: data });
+  } catch (error) {
+    dispatch({
+      type: "getListingFailure",
+      payload: error.response.data.message,
+    });
+  }
+};
+
+//Add action for getuserlisting
+export const getUserListing = () => async (dispatch) => {
+  try {
+    dispatch({ type: "getUserListingRequest" });
+
+    const { data } = await axios.get(`${serverUrl}/getuserlistings`);
+    dispatch({ type: "getUserListingSuccess", payload: data });
+  } catch (error) {
+    dispatch({
+      type: "getUserListingFailure",
+      payload: error.response.data.message,
+    });
+  }
+};
+
+//Add action for deleteuserlisting
+export const deleteUserListing = (itemId) => async (dispatch) => {
+  try {
+    dispatch({ type: "deleteUserListingRequest" });
+
+    const { data } = await axios.delete(
+      `${serverUrl}/getuserlistings/${itemId}`
+    );
+    dispatch({ type: "deleteUserListingSuccess", payload: data.message });
+  } catch (error) {
+    dispatch({
+      type: "deleteUserListingFailure",
+      payload: error.response.data.message,
+    });
+  }
+};
+
+// Action to update a user's listing by id and form data
+export const updateUserListing = (itemId, formData) => async (dispatch) => {
+  try {
+    dispatch({ type: "updateUserListingRequest" });
+
+    const { data } = await axios.put(
+      `${serverUrl}/getuserlistings/${itemId}`,
+      formData,
       {
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "multipart/form-data",
         },
       }
     );
-    dispatch({ type: "addTaskSuccess", payload: data.message });
-  } catch (error) {
-    dispatch({ type: "addTaskFailure", payload: error.response.data.message });
-  }
-};
-
-export const updateTask = (taskId) => async (dispatch) => {
-  try {
-    dispatch({ type: "updateTaskRequest" });
-
-    const { data } = await axios.get(`${serverUrl}/task/${taskId}`);
-    dispatch({ type: "updateTaskSuccess", payload: data.message });
+    dispatch({ type: "updateUserListingSuccess", payload: data.message });
   } catch (error) {
     dispatch({
-      type: "updateTaskFailure",
+      type: "updateUserListingFailure",
       payload: error.response.data.message,
     });
   }
 };
 
-export const deleteTask = (taskId) => async (dispatch) => {
-  try {
-    dispatch({ type: "deleteTaskRequest" });
+// //Add action for delete task
+// export const removeTask = (id) => async (dispatch) => {
+//   try {
+//     dispatch({ type: "deleteTaskRequest" });
 
-    const { data } = await axios.delete(`${serverUrl}/task/${taskId}`);
-    dispatch({ type: "deleteTaskSuccess", payload: data.message });
-  } catch (error) {
-    dispatch({
-      type: "deleteTaskFailure",
-      payload: error.response.data.message,
-    });
-  }
-};
+//     const { data } = await axios.delete(
+//       `${serverUrl}/deleteuserlistings/${id}`
+//     );
+//     dispatch({ type: "deleteTaskSuccess", payload: data.message });
+//   } catch (error) {
+//     dispatch({
+//       type: "deleteTaskFailure",
+//       payload: error.response.data.message,
+//     });
+//   }
+// };
+
+// //Add action for update task
+// export const updateTask = (id, formData) => async (dispatch) => {
+//   try {
+//     dispatch({ type: "updateTaskRequest" });
+
+//     const { data } = await axios.put(`${serverUrl}/task/${id}`, formData, {
+//       headers: {
+//         "Content-Type": "multipart/form-data",
+//       },
+//     });
+//     dispatch({ type: "updateTaskSuccess", payload: data.message });
+//   } catch (error) {
+//     dispatch({
+//       type: "updateTaskFailure",
+//       payload: error.response.data.message,
+//     });
+//   }
+// };
 
 export const updateProfile = (formData) => async (dispatch) => {
   try {
@@ -222,5 +297,57 @@ export const resetPassword = (otp, newPassword) => async (dispatch) => {
       type: "resetPasswordFailure",
       payload: error.response.data.message,
     });
+  }
+};
+
+//Add action for postitem
+export const postItem = (formData) => async (dispatch) => {
+  try {
+    dispatch({ type: "postItemRequest" });
+
+    const { data } = await axios.post(`${serverUrl}/postitem`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    dispatch({ type: "postItemSuccess", payload: data.message });
+  } catch (error) {
+    dispatch({
+      type: "postItemFailure",
+      payload: error.response.data.message,
+    });
+  }
+};
+
+export const FETCH_USER_LISTINGS_REQUEST = "FETCH_USER_LISTINGS_REQUEST";
+export const FETCH_USER_LISTINGS_SUCCESS = "FETCH_USER_LISTINGS_SUCCESS";
+export const FETCH_USER_LISTINGS_FAILURE = "FETCH_USER_LISTINGS_FAILURE";
+
+export const fetchUserListingsRequest = () => ({
+  type: FETCH_USER_LISTINGS_REQUEST,
+});
+
+export const fetchUserListingsSuccess = (listings) => ({
+  type: FETCH_USER_LISTINGS_SUCCESS,
+  payload: listings,
+});
+
+export const fetchUserListingsFailure = (error) => ({
+  type: FETCH_USER_LISTINGS_FAILURE,
+  payload: error,
+});
+
+export const fetchUserListings = () => async (dispatch) => {
+  try {
+    dispatch(fetchUserListingsRequest());
+
+    // Make an API request to fetch user listings
+    const response = await axios.get(`${serverUrl}/getallitems`);
+
+    // Dispatch the success action with the fetched listings
+    dispatch(fetchUserListingsSuccess(response.data));
+  } catch (error) {
+    // Dispatch the failure action with the error message
+    dispatch(fetchUserListingsFailure(error.message));
   }
 };

@@ -14,27 +14,25 @@ import ChangePassword from './screens/ChangePassword'
 import Verify from './screens/Verify'
 import ForgetPassword from './screens/ForgetPassword'
 import ResetPassword from './screens/ResetPassword'
+import ItemDetails from './screens/ItemDetails'
+import AppNavigator from './screens/AppNavigator'
+import UserListings from './screens/UserListings'
 
 const Stack = createNativeStackNavigator()
 
 const Main = () => {
     const dispatch = useDispatch()
 
-
-
     useEffect(() => {
         dispatch(loadUser())
-
     }, [dispatch])
 
-
     const { isAuthenticated, loading } = useSelector(state => state.auth)
+    
     return (
         loading ? <Loader /> : <NavigationContainer>
-
             <Stack.Navigator initialRouteName={isAuthenticated ? "home" : "login"}>
-
-                <Stack.Screen name='home' component={Home} options={{ headerShown: false }} />
+            <Stack.Screen name='home' component={Home} options={{ headerShown: false }} />
                 <Stack.Screen name='login' component={Login} options={{ headerShown: false }} />
                 <Stack.Screen name='register' component={Register} options={{ headerShown: false }} />
                 <Stack.Screen name='verify' component={Verify} options={{ headerShown: false }} />
@@ -43,12 +41,13 @@ const Main = () => {
                 <Stack.Screen name='changepassword' component={ChangePassword} options={{ headerShown: false }} />
                 <Stack.Screen name='forgetpassword' component={ForgetPassword} options={{ headerShown: false }} />
                 <Stack.Screen name='resetpassword' component={ResetPassword} options={{ headerShown: false }} />
+                <Stack.Screen name="AppNavigator" component={AppNavigator} options={{ headerShown: false }}/>
+                <Stack.Screen name="ItemDetails" component={ItemDetails} />
+                <Stack.Screen name="UserListing" component={UserListings} options={{ headerShown: false }}/>
 
             </Stack.Navigator>
 
             {isAuthenticated && <Footer />}
-
-
         </NavigationContainer>
     )
 }

@@ -1,138 +1,199 @@
-import { View, Text, SafeAreaView, Platform, StatusBar, StyleSheet, TouchableOpacity, TextInput, ScrollView } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import Task from "../components/Task"
-import Icon from "react-native-vector-icons/Entypo"
-import { Dialog, Button } from "react-native-paper"
-import { useDispatch, useSelector } from 'react-redux'
-import { addTask, loadUser } from '../redux/action'
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  FlatList,
+  Image,
+  Text,
+  StyleSheet,
+  RefreshControl,
+  TouchableOpacity,
+  Platform,
+  StatusBar,
+  Alert,
+  Button,
+} from 'react-native';
+import axios from 'axios';
+import { useNavigation } from '@react-navigation/native';
+import LoadingScreen from '../components/LoadingScreen';
 
-const Home = ({ navigation }) => {
-
-    const { user } = useSelector(state => state.auth)
-
-    const dispatch = useDispatch();
-
-    const { loading, message, error } = useSelector(state => state.message)
+import colors from '../config/colors';
 
 
-    const [openDialog, setOpenDialog] = useState(false);
-    const [title, setTitle] = useState("");
-    const [description, setDescription] = useState("");
+const Home = () => {
+  const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [networkError, setNetworkError] = useState(false);
+  const navigation = useNavigation();
 
-    const hideDialog = () => {
-        setOpenDialog(!openDialog)
+  const fetchData = async () => {
+    try {
+      const response = await axios.get(
+        'http://192.168.1.76:4000/api/v1/getlistings'
+      );
+      if (response.data.success) {
+        setItems(response.data.items);
+        setNetworkError(false);
+      } else {
+        setNetworkError(true);
+      }
+    } catch (error) {
+      if (error && error.message === 'Network Error') {
+        setNetworkError(true);
+      } else {
+        setNetworkError(false);
+        Alert.alert(
+          'Error',
+          'Failed to fetch data. Please try again later.',
+          [{ text: 'OK' }],
+          { cancelable: false }
+        );
+      }
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
+  };
 
-    const addTaskHandler = async () => {
-        await dispatch(addTask(title, description));
-        dispatch(loadUser());
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleRefresh = () => {
+    setRefreshing(true);
+    fetchData();
+  };
+
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <View style={styles.loadingContainer}>
+          <LoadingScreen />
+        </View>
+      );
+    } else if (networkError) {
+      return (
+        <View style={styles.errorContainer}>
+          <Text style={ styles.networkError }>Network error. Please try again.</Text>
+          <TouchableOpacity onPress={fetchData}>
+            {refreshing ? (
+              <LoadingScreen />
+            ) : (
+              <Text style={styles.retryText}>Tap to Retry</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      );
+    } else if (!items || items.length === 0) {
+      return (
+        <FlatList
+          data={items}
+          keyExtractor={(item) => item._id}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
+        />
+      );
+    } else {
+      return (
+        <FlatList
+          data={items}
+          keyExtractor={(item) => item._id}
+          renderItem={({ item }) => (
+            <TouchableOpacity onPress={() => navigateToDetails(item)}>
+              <View style={styles.card}>
+                <Image source={{ uri: item.images[0].url }} style={styles.image} />
+                <Text style={styles.title}>{item.title}</Text>
+                <Text style={styles.price}>Rs.{item.price.toFixed(2)}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          }
+        />
+      );
     }
+  };
 
-    useEffect(() => {
-        if (error) {
-            alert(error);
-            dispatch({ type: "clearError" });
-            dispatch({ type: "clearError" });
-        }
-        if (message) {
-            alert(message)
-            dispatch({ type: "clearMessage" });
-        }
-    }, [alert, error, message, dispatch])
+  const navigateToDetails = (item) => {
+    navigation.navigate('AppNavigator', {
+      screen: 'ItemDetails',
+      params: { item },
+      headerShown: false,
+    });
+  };
 
-
-
-    return (
-
-        <>
-            <View style={{ backgroundColor: "#fff", flex: 1, paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0 }}>
-
-                <ScrollView>
-                    <SafeAreaView>
-                        <Text style={styles.heading}>All Tasks</Text>
-
-                        {user && user.tasks.map((item) => (
-                            <Task key={item._id} title={item.title} description={item.description} status={item.completed} taskId={item._id} />
-                        ))}
-
-
-                        <TouchableOpacity style={styles.addBtn} onPress={hideDialog}>
-
-                            <Icon name='add-to-list' size={20} color="#900" />
-
-
-                        </TouchableOpacity>
-
-
-                    </SafeAreaView>
-
-                </ScrollView>
-            </View>
-            <Dialog visible={openDialog} onDismiss={hideDialog} >
-                <Dialog.Title>ADD A TASK</Dialog.Title>
-                <Dialog.Content>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Title"
-                        value={title}
-                        onChangeText={setTitle}
-                    />
-                    <TextInput
-                        style={styles.input}
-                        placeholder="Description"
-                        value={description}
-                        onChangeText={setDescription}
-                    />
-
-                    <View style={{ flexDirection: "row", alignItems: "center" }}>
-                        <TouchableOpacity onPress={hideDialog} >
-                            <Text>CANCEL</Text>
-                        </TouchableOpacity>
-                        <Button
-                            onPress={addTaskHandler}
-                            color="#900"
-                            disabled={!title || !description || loading}
-                        >
-                            ADD
-                        </Button>
-                    </View>
-                </Dialog.Content>
-            </Dialog>
-
-        </>
-    )
-}
-
-export default Home
+  return (
+    <View style={styles.container}>
+      {renderContent()}
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
-    heading: {
-        fontSize: 28,
-        textAlign: "center",
-        marginTop: 25,
-        marginBottom: 20,
-        color: "#fff",
-        backgroundColor: "#474747",
-    },
-    addBtn: {
-        backgroundColor: "#fff",
-        width: 150,
-        height: 50,
-        justifyContent: "center",
-        alignItems: "center",
-        borderRadius: 100,
-        alignSelf: "center",
-        marginVertical: 20,
-        elevation: 5,
-    },
-    input: {
-        backgroundColor: "#fff",
-        borderWidth: 1,
-        borderColor: "#b5b5b5",
-        padding: 10,
-        paddingLeft: 15,
-        borderRadius: 5,
-        marginVertical: 15,
-        fontSize: 15,
-    }
-})
+  container: {
+    flex: 1,
+    padding: 16,
+    overflow: 'hidden',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
+  loadingContainer: {
+    flex: 1,
+    overflow: 'hidden',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noDataContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  card: {
+    marginBottom: 16,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 16,
+  },
+  image: {
+    width: '100%',
+    height: 200,
+    borderRadius: 8,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginVertical: 8,
+  },
+  price: {
+    fontSize: 16,
+    color: 'green',
+  },
+  retryText: {
+    fontSize: 20,
+    color: colors.danger,
+    textDecorationLine: 'underline',
+    marginTop: 8,
+  },
+  networkError:{
+    fontSize: 18,
+    color: colors.dark,
+    marginTop: 8,
+  },
+  retryContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
+
+export default Home;
+
+
+
+
+
+

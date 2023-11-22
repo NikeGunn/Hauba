@@ -93,7 +93,9 @@ const Register = ({ navigation, route }) => {
                 style={Styles.btn}
                 onPress={registerHandler}
             >
-                <Text style={{ color: "#fff" }}>Register</Text>
+                <Text
+                style={{ color: "#fff" }}
+                >Register</Text>
             </Button>
             <TouchableOpacity onPress={() => navigation.navigate("login")}>
                 <Text

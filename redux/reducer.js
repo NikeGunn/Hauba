@@ -80,7 +80,21 @@ export const authReducer = createReducer(
     clearMessage: (state) => {
       state.message = null;
     },
-  }
+    fetchUserListingsRequest: (state) => {
+      // <- Remove the trailing comma here
+      state.userLoading = true;
+    },
+    fetchUserListingsSuccess: (state, action) => {
+      // <- Remove the trailing comma here
+      state.userLoading = false;
+      state.userListings = action.payload;
+    },
+    fetchUserListingsFailure: (state, action) => {
+      // <- Remove the trailing comma here
+      state.userLoading = false;
+      state.userError = action.payload;
+    },
+  } // <- Remove the trailing comma here
 );
 
 export const messageReducer = createReducer(
@@ -121,7 +135,6 @@ export const messageReducer = createReducer(
       state.loading = false;
       state.error = action.payload;
     },
-
     updateProfileRequest: (state) => {
       state.loading = true;
     },
@@ -176,6 +189,87 @@ export const messageReducer = createReducer(
 
     clearMessage: (state) => {
       state.message = null;
+    },
+  }
+);
+
+//Add a getListingReducer to redux/reducer.js
+export const getListingReducer = createReducer(
+  {
+    loading: false,
+    listings: [],
+    error: null,
+  },
+  {
+    getListingRequest: (state) => {
+      state.loading = true;
+      state.error = null;
+    },
+    getListingSuccess: (state, action) => {
+      state.loading = false;
+      state.listings = action.payload;
+      state.error = null;
+    },
+    getListingFailure: (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    },
+    clearError: (state) => {
+      state.error = null;
+    },
+    clearMessage: (state) => {
+      state.message = null;
+    },
+  }
+);
+
+//Add a UserListingReducer to redux/reducer.js
+export const userListingReducer = createReducer(
+  {
+    userLoading: false,
+    userListings: [],
+    userError: null,
+    userMessage: null,
+  },
+  {
+    getUserListingRequest: (state) => {
+      state.userLoading = true;
+    },
+    getUserListingSuccess: (state, action) => {
+      state.userLoading = false;
+      state.userListings = action.payload;
+    },
+    getUserListingFailure: (state, action) => {
+      state.userLoading = false;
+      state.userError = action.payload;
+    },
+    updateUserListingRequest: (state) => {
+      state.userLoading = true;
+    },
+    updateUserListingSuccess: (state, action) => {
+      state.userLoading = false;
+      state.userMessage = action.payload;
+    },
+    updateUserListingFailure: (state, action) => {
+      state.userLoading = false;
+      state.userError = action.payload;
+    },
+    deleteUserListingRequest: (state) => {
+      state.userLoading = true;
+    },
+    deleteUserListingSuccess: (state, action) => {
+      state.userLoading = false;
+      state.userMessage = action.payload;
+    },
+    deleteUserListingFailure: (state, action) => {
+      state.userLoading = false;
+      state.userError = action.payload;
+    },
+    clearUserError: (state) => {
+      state.userError = null;
+    },
+    clearUserMessage: (state) => {
+      state.userMessage = null;
     },
   }
 );

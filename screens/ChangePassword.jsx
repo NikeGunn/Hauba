@@ -1,8 +1,8 @@
-import { View, Text, StyleSheet, TextInput } from 'react-native'
+import { View, Text, StyleSheet, TextInput, Alert } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { Button } from 'react-native-paper';
 import { useDispatch } from 'react-redux';
-import { updatePassword } from '../redux/action';
+import { updatePassword, logout } from '../redux/action';
 
 const ChangePassword = () => {
 
@@ -13,7 +13,16 @@ const ChangePassword = () => {
 
     const changePasswordHandler = () => {
         dispatch(updatePassword(oldPassword, newPassword))
+        Alert.alert("Password Changed Successfully", "Please Login Again", [
+            {
+                text: "Ok",
+                onPress: () => {
+                    dispatch(logout())
+                }
+            }
+        ])
     }
+
 
 
     return (
